@@ -1,0 +1,55 @@
+services:
+  mariadb:
+    container_name: mariadb
+    image: mariadb
+    build:
+      context: ./requirements/mariadb
+    env_file:
+      - ./requirements/.env
+    volumes:
+      - mariadb_data:/var/lib/mysql
+    networks:
+      - inception
+    restart: always
+
+  wordpress:
+    container_name: wordpress
+    image: wordpress
+    build:
+      context: ./requirements/wordpress
+    env_file:
+      - ./requirements/.env
+    depends_on:
+      - mariadb
+    volumes:
+      - wordpress_data:/var/www/html
+    networks:
+      - inception
+    restart: always
+
+  nginx:
+    container_name: nginx
+    image: nginx
+    build:
+      context: ./requirements/nginx
+    env_file:
+      - ./requirements/.env
+    depends_on:
+      - wordpress
+    volumes:
+      - wordpress_data:/var/www/html:ro
+    ports:
+      - "443:443"
+    networks:
+      - inception
+    restart: always
+
+volumes:
+  mariadb_data:
+    name: mariadb_data
+  wordpress_data:
+    name: wordpress_data
+
+networks:
+  inception:
+    driver: bridge

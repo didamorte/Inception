@@ -1,7 +1,7 @@
 services:
   mariadb:
     container_name: mariadb
-    image: mariadb
+    image: mariadb:10.11
     build:
       context: ./requirements/mariadb
     env_file:
@@ -14,7 +14,7 @@ services:
 
   wordpress:
     container_name: wordpress
-    image: wordpress
+    image: wordpress:6.5
     build:
       context: ./requirements/wordpress
     env_file:
@@ -29,7 +29,7 @@ services:
 
   nginx:
     container_name: nginx
-    image: nginx
+    image: nginx:1.25
     build:
       context: ./requirements/nginx
     env_file:
@@ -46,9 +46,17 @@ services:
 
 volumes:
   mariadb_data:
-    name: mariadb_data
+      driver: local
+      driver_opts:
+        type: none
+        device: /home/dida/data/mariadb
+        o: bind
   wordpress_data:
-    name: wordpress_data
+      driver: local
+      driver_opts:
+        type: none
+        device: /home/dida/data/wordpress
+        o: bind
 
 networks:
   inception:

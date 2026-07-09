@@ -51,4 +51,4 @@ if wp core is-installed --allow-root --path=/var/www/html >/dev/null 2>&1; then
     fi
 fi
 
-exec php-fpm7.4 -F
+exec php-fpm8.2 -F

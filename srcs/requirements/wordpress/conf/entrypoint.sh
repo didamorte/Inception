@@ -1,6 +1,11 @@
 #!/bin/bash
 set -e
 
+# Read secrets
+MYSQL_PASSWORD=$(cat /run/secrets/mdb_password)
+WP_ADMIN_PASSWORD=$(cat /run/secrets/wp_admin_password)
+WP_USER_PASSWORD=$(cat /run/secrets/wp_user_password)
+
 cd /var/www/html
 
 until mysqladmin ping -h mariadb -u"${MYSQL_USER}" -p"${MYSQL_PASSWORD}" --silent; do
@@ -26,10 +31,10 @@ if [ ! -f /var/www/html/wp-config.php ]; then
 fi
 
 if ! grep -q "WP_HOME" wp-config.php; then
-    cat <<EOF >> wp-config.php
+    cat <<EOFF >> wp-config.php
 define('WP_HOME', 'https://${DOMAIN_NAME}');
 define('WP_SITEURL', 'https://${DOMAIN_NAME}');
-EOF
+EOFF
 fi
 
 if ! wp core is-installed --allow-root --path=/var/www/html >/dev/null 2>&1; then

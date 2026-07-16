@@ -8,6 +8,9 @@ services:
       - ./requirements/.env
     volumes:
       - mariadb_data:/var/lib/mysql
+    secrets:
+      - mdb_root_password
+      - mdb_password
     networks:
       - inception
     restart: always
@@ -23,6 +26,10 @@ services:
       - mariadb
     volumes:
       - wordpress_data:/var/www/html
+    secrets:
+      - mdb_password
+      - wp_admin_password
+      - wp_user_password
     networks:
       - inception
     restart: always
@@ -44,18 +51,28 @@ services:
       - inception
     restart: always
 
+secrets:
+  mdb_root_password:
+    file: ./secrets/mdb_root_password.txt
+  mdb_password:
+    file: ./secrets/mdb_password.txt
+  wp_admin_password:
+    file: ./secrets/wp_admin_password.txt
+  wp_user_password:
+    file: ./secrets/wp_user_password.txt
+
 volumes:
   mariadb_data:
       driver: local
       driver_opts:
         type: none
-        device: /home/dida/data/mariadb
+        device: /home/diogribe/data/mariadb
         o: bind
   wordpress_data:
       driver: local
       driver_opts:
         type: none
-        device: /home/dida/data/wordpress
+        device: /home/diogribe/data/wordpress
         o: bind
 
 networks:

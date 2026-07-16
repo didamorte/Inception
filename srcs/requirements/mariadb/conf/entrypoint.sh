@@ -1,6 +1,10 @@
 #!/bin/bash
 set -e
 
+# Read secrets
+MYSQL_ROOT_PASSWORD=$(cat /run/secrets/mdb_root_password)
+MYSQL_PASSWORD=$(cat /run/secrets/mdb_password)
+
 mkdir -p /run/mysqld
 chown -R mysql:mysql /run/mysqld /var/lib/mysql
 

@@ -42,29 +42,20 @@ The project can be managed using the provided Makefile or directly with Docker C
   make re
   ```
 
-### Using Docker Compose Directly
-
-The Makefile is a wrapper around `docker compose -f srcs/docker-compose.yml`.
-
-- Start: `docker compose -f srcs/docker-compose.yml up -d --build`
-- Stop: `docker compose -f srcs/docker-compose.yml down`
-- Stop and remove volumes: `docker compose -f srcs/docker-compose.yml down -v`
-- Stop, remove volumes, and delete images: `docker compose -f srcs/docker-compose.yml down -v --rmi all`
-
 ## Accessing the Website and Administration Panel
 
-Once the stack is running, the WordPress site is accessible via HTTPS at the domain specified in `srcs/requirements/.env` (variable `DOMAIN_NAME`). By default, this is set to `<your_login>.42.fr` (where `<your_login>` is your 42 username).
+Once the stack is running, the WordPress site is accessible via HTTPS at the domain specified in `srcs/requirements/.env` (variable `DOMAIN_NAME`). By default, this is set to `diogribe.42.fr`.
 
 To access the site:
 1. Ensure your machine can resolve the domain name. You may need to add an entry to your `/etc/hosts` file (or equivalent) pointing the domain to `127.0.0.1`:
    ```
-   127.0.0.1   <your_login>.42.fr
+   127.0.0.1   diogribe.42.fr
    ```
-2. Open a web browser and navigate to `https://<your_login>.42.fr`.
+2. Open a web browser and navigate to `https://diogribe.42.fr`.
    - Note: The site uses a self-signed SSL certificate; your browser may show a warning. You will need to proceed past this warning (advanced → proceed anyway) for development purposes.
 
 The WordPress administration panel is available at:
-`https://<your_login>.42.fr/wp-admin`
+`https://diogribe.42.fr/wp-admin`
 
 Log in using the credentials set in the secrets:
 - Administrator username: `WP_ADMIN_USER` (from `srcs/requirements/.env`)
@@ -126,13 +117,13 @@ docker compose -f srcs/docker-compose.yml logs -f <service>
 Replace `<service>` with the service name (e.g., `wordpress`). Press `Ctrl+C` to stop following logs.
 
 ### 3. Test Website Access
-As described above, navigate to `https://<your_login>.42.fr` in a browser. The site should load without connection errors (ignoring the self-signed certificate warning).
+As described above, navigate to `https://diogribe.42.fr` in a browser. The site should load without connection errors (ignoring the self-signed certificate warning).
 
 ### 4. Check Service Ports
 NGINX should be listening on port 443 (verified by attempting to connect or using `docker compose port nginx 443`).
 
 ### 5. Volume Mounts
-Data persistence can be verified by checking that the directories `/home/<your_login>/data/mariadb` and `/home/<your_login>/data/wordpress` exist and contain data after the stack has been running.
+Data persistence can be verified by checking that the directories `/home/diogribe/data/mariadb` and `/home/diogribe/data/wordpress` exist and contain data after the stack has been running.
 
 ## Stopping and Cleaning Up
 

@@ -24,7 +24,7 @@ The project uses the following configuration files (all ignored by Git via `.git
 1. **`srcs/requirements/.env`**  
    Contains non-sensitive environment variables used by all services.  
    Key variables:
-   - `DOMAIN_NAME`: The fully qualified domain name for the site (e.g., `jdoe.42.fr`).
+   - `DOMAIN_NAME`: The fully qualified domain name for the site (e.g., `diogribe.42.fr`).
    - `MYSQL_DATABASE`: Name of the WordPress database.
    - `MYSQL_USER`: MariaDB user for WordPress.
    - `WP_ADMIN_USER`: WordPress administrator username.
@@ -201,3 +201,4 @@ During development, the following resources were referenced:
 - MariaDB Docker image: https://hub.docker.com/_/mariadb
 - WP-CLI: https://wp-cli.org/
 - The 42 school project subject (Inception).
+

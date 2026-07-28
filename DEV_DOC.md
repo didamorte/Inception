@@ -201,4 +201,3 @@ During development, the following resources were referenced:
 - MariaDB Docker image: https://hub.docker.com/_/mariadb
 - WP-CLI: https://wp-cli.org/
 - The 42 school project subject (Inception).
-

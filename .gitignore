@@ -2,4 +2,4 @@
 /srcs/.env
 /srcs/requirements/.env
 
-/secrets/
+/secrets/*

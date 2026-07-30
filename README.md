@@ -68,6 +68,7 @@ To change a secret:
 * MariaDB Docker official image: https://hub.docker.com/_/mariadb
 * Official Debian images: https://hub.docker.com/_/debian
 * Official Alpine Linux images: https://hub.docker.com/_/alpine
+* A little AI to help with readmes and overview verifications
 
 # Project description
 ## Why Docker instead of a classic Virtual Machine?

@@ -6,9 +6,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     gettext-base \
     && rm -rf /var/lib/apt/lists/*
 
-RUN mkdir -p /etc/nginx/ssl /var/www/html
+RUN mkdir -p /etc/nginx/ssl
 
 COPY conf/nginx.conf /etc/nginx/nginx.conf.template
+
 COPY conf/entrypoint.sh /usr/local/bin/entrypoint.sh
 
 RUN chmod +x /usr/local/bin/entrypoint.sh

@@ -9,6 +9,8 @@ Inception is a system‑administration project whose goal is to set up a small i
 
 Each service runs in its own container, built from a custom Dockerfile based on a Debian (or Alpine) image. Containers communicate through a user‑defined bridge network, persist data via named Docker volumes, and are restarted automatically on failure. Sensitive data (passwords) are handled via Docker Secrets, while non‑configuration values are stored in a `.env` file that is ignored by Git.
 
+All images are built from scratch using the provided Dockerfiles rather than pulling pre-built images from Docker Hub.
+
 # Instructions
 ## Prerequisites
 * A Linux machine with Docker Engine and Docker Compose installed.
@@ -21,6 +23,7 @@ git clone <repository‑url>
 cd <repository‑dir>
 
 # Build the images and launch the containers in detached mode
+# Note: The Makefile will automatically create the required data directories
 docker compose -f srcs/docker-compose.yml up -d --build
 ```
 
@@ -45,6 +48,8 @@ docker compose -f srcs/docker-compose.yml up -d --build
 
 ## Managing secrets
 The secrets are stored as plain files under `srcs/secrets/` and are **not** tracked by Git (see `.gitignore`).  
+The entrypoint scripts have been improved to handle database initialization more robustly, including checks for existing installations and proper configuration of users and privileges.
+
 To change a secret:
 1. Edit the corresponding file in `srcs/secrets/` (e.g., `mdb_root_password.txt`).
 2. Re‑build and recreate the affected service:
@@ -58,6 +63,7 @@ To change a secret:
   ```bash
   docker compose -f srcs/docker-compose.yml down --rmi all --volumes --remove-orphans
   ```
+* The `make fclean` command will also remove the data directories under `/home/<login>/data`
 
 # Resources
 * Docker documentation: https://docs.docker.com/

@@ -1,42 +1,116 @@
 #!/bin/bash
+
 set -e
 
-# Read secrets
 MYSQL_ROOT_PASSWORD=$(cat /run/secrets/mdb_root_password)
 MYSQL_PASSWORD=$(cat /run/secrets/mdb_password)
 
 mkdir -p /run/mysqld
 chown -R mysql:mysql /run/mysqld /var/lib/mysql
 
+# Check if this is a fresh database
 if [ ! -d /var/lib/mysql/mysql ]; then
-    mariadb-install-db --user=mysql --datadir=/var/lib/mysql
+    echo "Initializing MariaDB..."
 
-    mariadbd --user=mysql \
-        --datadir=/var/lib/mysql \
-        --socket=/run/mysqld/mysqld.sock \
-        --skip-networking &
-    pid="$!"
+    mariadb-install-db \
+        --user=mysql \
+        --datadir=/var/lib/mysql
 
-    for i in $(seq 1 30); do
-        if mysqladmin --socket=/run/mysqld/mysqld.sock ping --silent; then
-            break
-        fi
-        sleep 1
-    done
-
-    mysql --socket=/run/mysqld/mysqld.sock -u root <<-EOSQL
-        ALTER USER 'root'@'localhost' IDENTIFIED BY '${MYSQL_ROOT_PASSWORD}';
-        CREATE DATABASE IF NOT EXISTS ${MYSQL_DATABASE};
-        CREATE USER IF NOT EXISTS '${MYSQL_USER}'@'%' IDENTIFIED BY '${MYSQL_PASSWORD}';
-        GRANT ALL PRIVILEGES ON ${MYSQL_DATABASE}.* TO '${MYSQL_USER}'@'%';
-        FLUSH PRIVILEGES;
-EOSQL
-
-    mysqladmin --socket=/run/mysqld/mysqld.sock -u root -p"${MYSQL_ROOT_PASSWORD}" shutdown
-    wait "${pid}"
+    FRESH_DB=true
+else
+    echo "MariaDB already initialized."
+    FRESH_DB=false
 fi
 
-exec mariadbd --user=mysql \
+# Start temporary MariaDB
+echo "Starting temporary MariaDB..."
+
+mariadbd \
+    --user=mysql \
+    --datadir=/var/lib/mysql \
+    --socket=/run/mysqld/mysqld.sock \
+    --skip-networking &
+
+pid=$!
+
+# Wait for MariaDB
+echo "Waiting for MariaDB..."
+
+until mysqladmin \
+    --socket=/run/mysqld/mysqld.sock \
+    ping \
+    --silent
+do
+    sleep 1
+done
+
+echo "MariaDB is ready."
+
+# Configure database and users
+if [ "$FRESH_DB" = true ]; then
+
+    echo "Configuring fresh database..."
+
+    mysql \
+        --socket=/run/mysqld/mysqld.sock \
+        -u root <<-EOSQL
+
+        ALTER USER 'root'@'localhost'
+            IDENTIFIED BY '${MYSQL_ROOT_PASSWORD}';
+
+        CREATE DATABASE IF NOT EXISTS \`${MYSQL_DATABASE}\`;
+
+        CREATE USER IF NOT EXISTS '${MYSQL_USER}'@'%'
+            IDENTIFIED BY '${MYSQL_PASSWORD}';
+
+        GRANT ALL PRIVILEGES ON \`${MYSQL_DATABASE}\`.*
+            TO '${MYSQL_USER}'@'%';
+
+        FLUSH PRIVILEGES;
+
+EOSQL
+
+else
+
+    echo "Checking existing database configuration..."
+
+    mysql \
+        --socket=/run/mysqld/mysqld.sock \
+        -u root \
+        -p"${MYSQL_ROOT_PASSWORD}" <<-EOSQL
+
+        CREATE DATABASE IF NOT EXISTS \`${MYSQL_DATABASE}\`;
+
+        CREATE USER IF NOT EXISTS '${MYSQL_USER}'@'%'
+            IDENTIFIED BY '${MYSQL_PASSWORD}';
+
+        ALTER USER '${MYSQL_USER}'@'%'
+            IDENTIFIED BY '${MYSQL_PASSWORD}';
+
+        GRANT ALL PRIVILEGES ON \`${MYSQL_DATABASE}\`.*
+            TO '${MYSQL_USER}'@'%';
+
+        FLUSH PRIVILEGES;
+
+EOSQL
+
+fi
+
+echo "Database and user configuration complete."
+
+# Stop temporary MariaDB
+mysqladmin \
+    --socket=/run/mysqld/mysqld.sock \
+    -u root \
+    -p"${MYSQL_ROOT_PASSWORD}" \
+    shutdown
+
+wait "$pid"
+
+echo "Starting MariaDB normally..."
+
+exec mariadbd \
+    --user=mysql \
     --datadir=/var/lib/mysql \
     --socket=/run/mysqld/mysqld.sock \
     --bind-address=0.0.0.0

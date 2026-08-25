@@ -11,6 +11,7 @@ This document describes how a developer can set up the environment, build, and m
   - Git installed (to clone the repository).
 - The user must be able to run Docker commands without sudo (typically by being added to the `docker` group).
 - At least 2 GB of free disk space for images and volumes.
+- Note: All images are built from source using the provided Dockerfiles, which may require additional disk space and time for the initial build.
 
 ### Cloning the Repository
 ```bash
@@ -66,10 +67,12 @@ The project uses the following configuration files (all ignored by Git via `.git
    mkdir -p /home/$USER/data/wordpress
    ```
    The docker-compose.yml defines volumes that bind to `/home/<login>/data/mariadb` and `/home/<login>/data/wordpress`. Replace `<login>` with your actual username (or adjust the volume definitions in docker-compose.yml if you prefer a different path).
+   **Note:** The `make up` command will automatically create these directories if they don't exist, so manual creation is optional.
 
 ## Building and Launching the Project
 
 The project provides a Makefile for convenience, but all actions can be performed directly with Docker Compose.
+**Note:** All images are built from source using the provided Dockerfiles rather than pulling pre-built images.
 
 ### Using the Makefile
 - **Build images and start containers** (detached):
@@ -77,6 +80,7 @@ The project provides a Makefile for convenience, but all actions can be performe
   make up
   ```
   This is equivalent to `make` (since `all: up`).
+  The Makefile will automatically create the required data directories under `/home/<login>/data` if they don't exist.
 
 - **Start without rebuilding** (if images are already built):
   ```bash
@@ -126,6 +130,7 @@ Or prune only specific types:
 docker volume prune
 docker image prune
 ```
+**Note:** The `make fclean` command (equivalent to `docker compose down -v --rmi all --remove-orphans`) will also remove the data directories under `/home/<login>/data`.
 
 ## Data Persistence and Storage Locations
 
@@ -138,10 +143,12 @@ docker image prune
 - **Named volumes** persist data even after containers are removed (via `docker compose down` without the `-v` flag).
 - If you run `docker compose down -v`, the named volumes are removed, and thus the data on the host bind-mounts is **not** automatically removed (because the volume driver specifies `device: /host/path`). However, note that the volume removal will delete the bind-mounted directory's contents? Actually, with the driver_opts `device: /host/path`, the volume is essentially a bind mount; removing the volume in Docker does not delete the host directory. It only removes the volume metadata. The host directory remains intact. To truly remove data, you must delete the host directory manually.
 - Therefore, to persist data across redeploys, avoid using the `-v` flag with `down`. To start fresh, manually delete the contents of `/home/<login>/data/mariadb` and `/home/<login>/data/wordpress` (or the directories themselves) after stopping the stack.
+- **Note:** The `make fclean` command will automatically remove the `/home/<login>/data` directory entirely.
 
 ### Backup and Restore
 - **Backup**: Stop the stack, then copy the directories `/home/<login>/data/mariadb` and `/home/<login>/data/wordpress` to a backup location.
 - **Restore**: Stop the stack, replace the contents of those directories with the backup, then start the stack.
+- **Note:** If using `make fclean`, the data directories will be removed and need to be recreated before restoring.
 
 ## Useful Development Commands
 
@@ -177,8 +184,10 @@ Example: `docker compose -f srcs/docker-compose.yml up -d --build nginx`
 ### Common Issues
 - **Containers exit immediately**: Check logs with `docker compose logs <service>`. Common causes: missing secrets, permission errors on volumes, port conflicts.
 - **Port 443 already in use**: Stop any existing process using port 443 (e.g., another web server) or change the port in docker-compose.yml (not recommended as it deviates from the project spec).
-- **Website not loading**: Verify NGINX is running and listening on port 443 (`netstat -tlnp | grep :443` or `docker compose port nginx 443`). Check NGINX error logs: `docker compose logs nginx`.
+- **Website not loading**: Verify NGINX is running and listening on port 443 (`netstat -tlnp | grep :443` or `docker compose port nginx 443`). Check NGINX error logs: `docker compose logs nginx`. Note: NGINX configuration now includes `try_files $uri =404;` in the PHP location block for improved security.
 - **Database connection failures**: Ensure MariaDB is running and the credentials in `.env` and secrets match. Check MariaDB logs: `docker compose logs mariadb`.
+- **MariaDB initialization issues**: The MariaDB entrypoint script now includes more robust initialization logic. If you encounter issues, check the mariadb container logs for detailed information about the initialization process.
+- **WordPress installation issues**: The WordPress entrypoint script now validates required environment variables and provides more detailed output during installation. Check the wordpress container logs if you encounter issues during setup.
 
 ### Resetting the Environment
 To start completely from scratch (remove images, volumes, and anonymous volumes):
@@ -190,6 +199,7 @@ Then remove the host data directories if desired:
 rm -rf /home/$USER/data/mariadb /home/$USER/data/wordpress
 ```
 Recreate the directories and restore secrets/.env as needed.
+**Note:** The `make fclean` command performs the equivalent of the docker compose command above and also removes the `/home/<login>/data` directory entirely.
 
 ## Resources Consulted
 During development, the following resources were referenced:

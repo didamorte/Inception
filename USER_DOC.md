@@ -15,6 +15,7 @@ Each service runs in its own isolated container, communicating via a user-define
 ## Starting and Stopping the Project
 
 The project can be managed using the provided Makefile or directly with Docker Compose.
+**Note:** All images are built from source using the provided Dockerfiles rather than pulling pre-built images.
 
 ### Using Makefile
 
@@ -26,6 +27,7 @@ The project can be managed using the provided Makefile or directly with Docker C
   ```bash
   make up
   ```
+  The Makefile will automatically create the required data directories under `/home/<login>/data` if they don't exist.
 
 - **Stop the stack** (stop containers, remove network):
   ```bash
@@ -36,6 +38,7 @@ The project can be managed using the provided Makefile or directly with Docker C
   ```bash
   make fclean
   ```
+  This will also remove the data directories under `/home/<login>/data`.
 
 - **Rebuild and restart** (equivalent to `fclean` then `up`):
   ```bash
@@ -129,6 +132,7 @@ Data persistence can be verified by checking that the directories `/home/diogrib
 
 - To temporarily stop the stack while preserving data (volumes): `make down` or `docker compose down`.
 - To stop and remove all data (volumes): `make fclean` or `docker compose down -v`.
+  **Note:** The `make fclean` command will also remove the data directories under `/home/<login>/data`.
 - To also remove built images: add `--rmi all` to the down command.
 
 ## Support and Resources

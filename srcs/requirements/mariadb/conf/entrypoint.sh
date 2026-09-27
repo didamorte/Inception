@@ -56,7 +56,8 @@ if [ "$FRESH_DB" = true ]; then
         -u root <<-EOSQL
 
         ALTER USER 'root'@'localhost'
-            IDENTIFIED BY '${MYSQL_ROOT_PASSWORD}';
+            IDENTIFIED VIA mysql_native_password
+            USING PASSWORD('${MYSQL_ROOT_PASSWORD}');
 
         CREATE DATABASE IF NOT EXISTS \`${MYSQL_DATABASE}\`;
 
@@ -78,6 +79,10 @@ else
         --socket=/run/mysqld/mysqld.sock \
         -u root \
         -p"${MYSQL_ROOT_PASSWORD}" <<-EOSQL
+
+        ALTER USER 'root'@'localhost'
+            IDENTIFIED VIA mysql_native_password
+            USING PASSWORD('${MYSQL_ROOT_PASSWORD}');
 
         CREATE DATABASE IF NOT EXISTS \`${MYSQL_DATABASE}\`;
 
